@@ -1,0 +1,40 @@
+[tool.poetry]
+name = "toto"
+version = "0.0.0"
+description = ""
+authors = ["R2 Factory <contact@r2-factory.com>"]
+
+[tool.poetry.dependencies]
+python = "3.8.13"
+requests = "^2.28.1"
+google-auth = "^2.15.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "*"
+coverage = "*"
+black = {version = "*", allow-prereleases = true}
+
+[build-system]
+requires = ["poetry_core>=1.0.0", "keyrings.google-artifactregistry-auth==1.0.0", "poetry-dynamic-versioning"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+latest-tag = true
+metadata = true
+dirty = true
+style = "pep440"
+format-jinja = """
+    {%- if distance == 0 -%}
+        {{ serialize_pep440(base, stage, revision) }}
+    {%- elif revision is not none -%}
+        {{ serialize_pep440(base, stage, revision + 1, dev=distance, metadata=[commit]) }}
+    {%- else -%}
+        {{ serialize_pep440(bump_version(base), stage, revision, dev=distance, metadata=[commit]) }}
+    {%- if dirty -%}
+        .dirty
+    {%- endif -%}
+    {%- endif -%}
+"""
+pattern  = "^(?P<base>\\d+\\.\\d+\\.\\d+)(-?((?P<stage>[a-zA-Z]+)\\.?(?P<revision>\\d+)?))?"
