@@ -100,11 +100,16 @@ class TotoClient:
 
     def get_area(self, area_id):
         query = """query {
-                      area(areaId:"%s") {
-                        id
-                        properties
-                      }
-                    }
+                     area(areaId: "%s") {
+                       id
+                       properties
+                       areas {
+                         id
+                         properties
+                         polygonParent
+                       }
+                     }
+                   }
                 """ % (area_id,)
         data = {"query": query, "variables": None}
         headers = {
