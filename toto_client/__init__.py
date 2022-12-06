@@ -1,1 +1,1 @@
-from toto_client import TotoClient
+from toto_client.toto_client import TotoClient
