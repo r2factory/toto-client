@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "toto"
+name = "toto_client"
 version = "0.0.0"
 description = ""
 authors = ["R2 Factory <contact@r2-factory.com>"]
