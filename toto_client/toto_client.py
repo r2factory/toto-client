@@ -113,6 +113,7 @@ class TotoClient:
                       pageNumber
                       polygonParent
                       tableCsv
+                      text
                     }
                 """ % (tag,tag)
         if jobs is not None:
@@ -126,6 +127,7 @@ class TotoClient:
                       pageNumber
                       polygonParent
                       tableCsv
+                      text
                     }
                 """ % (job,job)
 
@@ -133,6 +135,10 @@ class TotoClient:
                       data(dataId:"%s") {
                         id
                         dataType
+                        tableCsv
+                        pageNumber
+                        polygonParent
+                        text
                         %s
                       }
                     }
@@ -163,7 +169,14 @@ class TotoClient:
         self.wait_for_jobs_to_complete([job_identifier])
 
         data = self.get_data(data_id, jobs=["hf_recognise_table_base64"])
-        csvString = data["hf_recognise_table_base64"][0]["tableCsv"]
+        table_data_id = data["hf_recognise_table_base64"][0]["id"]
+        return table_data_id
+
+    def get_df_from_table(self, table_data_id):
+        data = self.get_data(table_data_id)
+        assert data["dataType"] == "dataframe"
+        csvString = data["tableCsv"]
         csvStringIO = StringIO(csvString)
         df = pd.read_csv(csvStringIO, sep=",", header=None)
         return df
+
