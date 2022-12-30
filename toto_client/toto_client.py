@@ -111,7 +111,7 @@ class TotoClient:
                       id
                       dataType
                       pageNumber
-                      polygonParent
+                      polygonRelativeToParent
                       tableCsv
                       text
                     }
@@ -125,7 +125,7 @@ class TotoClient:
                       id
                       dataType
                       pageNumber
-                      polygonParent
+                      polygonRelativeToParent
                       tableCsv
                       text
                     }
@@ -137,7 +137,7 @@ class TotoClient:
                         dataType
                         tableCsv
                         pageNumber
-                        polygonParent
+                        polygonRelativeToParent
                         text
                         %s
                       }
