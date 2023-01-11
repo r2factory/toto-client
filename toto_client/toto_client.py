@@ -137,6 +137,7 @@ class TotoClient:
                         dataType
                         tableCsv
                         pageNumber
+                        pageIndexes
                         polygonRelativeToParent
                         text
                         %s
