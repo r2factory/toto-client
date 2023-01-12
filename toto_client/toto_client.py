@@ -180,3 +180,57 @@ class TotoClient:
         df = pd.read_csv(csvStringIO, sep=",", header=None)
         return df
 
+    def search_term(self, search_term):
+        query = """
+            query Search($searchTerm: String!) {
+              searchInTexts(searchTerm: $searchTerm) {
+                data {
+                  id
+                  fileName
+                  dataType
+                  pageNumber
+                  pageIndexes
+                }
+                searchPageNumber
+              }
+            }
+           """
+
+        data = {"query": query, "variables": {"searchTerm": search_term}}
+        headers = {
+            'Authorization': f"Bearer {self.r2_token}",
+            'Content-type': 'application/json',
+            'Accept': 'application/json'
+        }
+        r = requests.post(f"{self.host}/graphql", headers=headers, json=data)
+        if not (200 <= r.status_code < 300):
+            raise ConnectionError(r.text)
+        search_results = r.json()['data']['searchInTexts']
+        return search_results
+        query = """
+            mutation {
+                cropImageAndOcr(parentDataId: "%s", polygon: %s) {
+                  id
+                  dataType
+                  crop_image_and_ocr: datas(jobName: "crop_image_and_ocr") {
+                    id
+                    dataType
+                    text
+                }
+              }
+            }
+        """ % (parent_data_id, polygon)
+        data = {"query": query, "variables": None}
+        headers = {
+            'Authorization': f"Bearer {self.r2_token}",
+            'Content-type': 'application/json',
+            'Accept': 'application/json'
+        }
+        r = requests.post(f"{self.host}/graphql", headers=headers, json=data)
+        if not (200 <= r.status_code < 300):
+            raise ConnectionError(r.text)
+        data = r.json()['data']['cropImageAndOcr']
+
+        data_text = data["crop_image_and_ocr"][0]
+        return data_text
+
