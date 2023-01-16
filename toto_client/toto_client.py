@@ -100,14 +100,15 @@ class TotoClient:
                 break
             time.sleep(1)
 
-    def get_data(self, data_id, tags=None, jobs=None):
+    def get_data(self, data_id, tags=None, jobs=None, tag_group=None):
         query = ""
         if tags is not None:
             if isinstance(tags, str):
                 tags = [tags]
             for tag in tags:
+                tag_group_argument = '' if tag_group is None else f', tagGroup: "{tag_group}"'
                 query += """
-                    %s: datas(tagName: "%s") {
+                    %s: datas(tagName: "%s"%s) {
                       id
                       dataType
                       pageNumber
@@ -115,7 +116,7 @@ class TotoClient:
                       tableCsv
                       text
                     }
-                """ % (tag,tag)
+                """ % (tag,tag, tag_group_argument)
         if jobs is not None:
             if isinstance(jobs, str):
                 jobs = [jobs]
