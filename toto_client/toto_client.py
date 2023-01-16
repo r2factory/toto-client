@@ -116,7 +116,7 @@ class TotoClient:
                       tableCsv
                       text
                     }
-                """ % (tag,tag, tag_group_argument)
+                """ % (tag.replace(" ", "_"),tag, tag_group_argument)
         if jobs is not None:
             if isinstance(jobs, str):
                 jobs = [jobs]
