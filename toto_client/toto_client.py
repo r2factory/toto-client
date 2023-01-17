@@ -111,6 +111,7 @@ class TotoClient:
                       id
                       dataType
                       pageNumber
+                      pageIndexes
                       polygonRelativeToParent
                       tableCsv
                       text
@@ -125,6 +126,7 @@ class TotoClient:
                       id
                       dataType
                       pageNumber
+                      pageIndexes
                       polygonRelativeToParent
                       tableCsv
                       text
