@@ -8,7 +8,7 @@ import requests
 import pandas as pd
 
 class TotoClient:
-    def __init__(self, host=None, login_required=True):
+    def __init__(self, host=None, login_required=True, request_session=None):
         if host is None:
             host = os.environ.get('TOTO_HOST', "https://toto.dev.r2-factory.com")
         self.host = host
@@ -34,6 +34,10 @@ class TotoClient:
         else:
             self.r2_token = "no_token"
 
+        self.request_session = request_session
+        if request_session is None:
+            self.request_session = requests.Session()
+
     def upload_file(self, file_path: str):
         file_name = os.path.basename(file_path)
         file_uuid = self.generate_file_uuid(file_path)
@@ -51,9 +55,10 @@ class TotoClient:
 
         values = {'fileContentBase64': file_content_base64, 'fileName': file_name, 'uuid': file_uuid}
 
-        r = requests.post(f"{self.host}/upload_file", json=values)
+        r = self.request_session.post(f"{self.host}/upload_file", json=values)
         if r.status_code != 200:
             raise ValueError(f"Failed uploading {r.status_code} {r.text}")
+
         return r.json()['data_id']
 
     def generate_file_uuid(self, file_path):
@@ -70,18 +75,20 @@ class TotoClient:
         if force:
             values["force"] = "True"
 
-        r = requests.get(f"{self.host}/queue_job", params=values)
+        r = self.request_session.get(f"{self.host}/queue_job", params=values)
         if r.status_code != 200:
             raise ValueError(f"Failed queuing job {r.status_code} {r.text}")
+
         return r.json()["job_id"]
 
     def jobs(self, job_ids=None):
         values = None
         if job_ids is not None:
             values = {"jobIds": job_ids}
-        r = requests.get(f"{self.host}/jobs", json=values)
+        r = self.request_session.get(f"{self.host}/jobs", json=values)
         if r.status_code != 200:
             raise ValueError(f"Failed querying for jobs {r.status_code} {r.text}")
+
         return r.json()
 
     def wait_for_jobs_to_complete(self, job_ids: List[str], timeout: int = None, debug_prints: bool = False):
@@ -94,7 +101,7 @@ class TotoClient:
             jobs = self.jobs(job_ids)
             for job_ids_index in range(len(job_ids)):
                 job_id = job_ids[job_ids_index]
-                if jobs[job_id]["status"] != "Running":
+                if jobs[job_id]["status"] not in ("Running", "Queued"):
                     job_ids.pop(job_ids_index)
             if len(job_ids) == 0:
                 break
@@ -150,7 +157,7 @@ class TotoClient:
             'Content-type': 'application/json',
             'Accept': 'application/json'
         }
-        r = requests.post(f"{self.host}/graphql", headers=headers, json=data)
+        r = self.request_session.post(f"{self.host}/graphql", headers=headers, json=data)
         if not (200 <= r.status_code < 300):
             raise ConnectionError(r.text)
         return r.json()['data']['data']
@@ -203,9 +210,10 @@ class TotoClient:
             'Content-type': 'application/json',
             'Accept': 'application/json'
         }
-        r = requests.post(f"{self.host}/graphql", headers=headers, json=data)
+        r = self.request_session.post(f"{self.host}/graphql", headers=headers, json=data)
         if not (200 <= r.status_code < 300):
             raise ConnectionError(r.text)
+
         search_results = r.json()['data']['searchInTexts']
         return search_results
         query = """
@@ -227,9 +235,10 @@ class TotoClient:
             'Content-type': 'application/json',
             'Accept': 'application/json'
         }
-        r = requests.post(f"{self.host}/graphql", headers=headers, json=data)
+        r = self.request_session.post(f"{self.host}/graphql", headers=headers, json=data)
         if not (200 <= r.status_code < 300):
             raise ConnectionError(r.text)
+
         data = r.json()['data']['cropImageAndOcr']
 
         data_text = data["crop_image_and_ocr"][0]
