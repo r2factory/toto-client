@@ -202,6 +202,8 @@ class TotoClient:
                   pageNumber
                   pageIndexes
                 }
+                score
+                valueCount
                 searchPageNumber
               }
             }
