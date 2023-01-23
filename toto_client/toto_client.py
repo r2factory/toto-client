@@ -2,7 +2,7 @@ import json
 import os
 import time
 from io import StringIO
-from typing import Optional, Dict, List
+from typing import Optional, Union, Dict, List
 import base64
 import requests
 import pandas as pd
@@ -11,7 +11,9 @@ import pandas as pd
 class TotoClient:
     def __init__(self, host=None, login_required=True, request_session=None):
         if host is None:
-            host = os.environ.get("TOTO_HOST", "https://toto.dev.r2-factory.com")
+            host = os.environ.get(
+                "TOTO_HOST", "https://toto.dev.r2-factory.com"
+            )
         self.host = host
 
         if "LOGIN_REQUIRED" in os.environ:
@@ -52,13 +54,19 @@ class TotoClient:
             file_content_base64 = base64.b64encode(file.read()).decode("utf-8")
 
         if file_path.endswith(".pdf"):
-            file_content_base64 = "data:application/pdf;base64," + file_content_base64
+            file_content_base64 = (
+                "data:application/pdf;base64," + file_content_base64
+            )
         if file_path.endswith(".png"):
             file_content_base64 = "data:image/png;base64," + file_content_base64
         if file_path.endswith(".jpg") or file_path.endswith(".jpeg"):
-            file_content_base64 = "data:image/jpeg;base64," + file_content_base64
+            file_content_base64 = (
+                "data:image/jpeg;base64," + file_content_base64
+            )
         if file_path.endswith(".tif") or file_path.endswith(".tiff"):
-            file_content_base64 = "data:image/tiff;base64," + file_content_base64
+            file_content_base64 = (
+                "data:image/tiff;base64," + file_content_base64
+            )
 
         values = {
             "fileContentBase64": file_content_base64,
@@ -104,12 +112,17 @@ class TotoClient:
             values = {"jobIds": job_ids}
         r = self.request_session.get(f"{self.host}/jobs", json=values)
         if r.status_code != 200:
-            raise ValueError(f"Failed querying for jobs {r.status_code} {r.text}")
+            raise ValueError(
+                f"Failed querying for jobs {r.status_code} {r.text}"
+            )
 
         return r.json()
 
     def wait_for_jobs_to_complete(
-        self, job_ids: List[str], timeout: int = None, debug_prints: bool = False
+        self,
+        job_ids: List[str],
+        timeout: int = None,
+        debug_prints: bool = False,
     ):
         if timeout is not None:
             raise NotImplementedError("timeout not implemented")
@@ -201,7 +214,9 @@ class TotoClient:
     def detect_table(self, data_id):
         data = self.get_data(data_id, jobs=["pageimg2tablebox_base64"])
         assert data["dataType"] == "image"
-        job_identifier = self.queue_job("pageimg2tablebox_base64", data_id=data_id)
+        job_identifier = self.queue_job(
+            "pageimg2tablebox_base64", data_id=data_id
+        )
         self.wait_for_jobs_to_complete([job_identifier])
         data = self.get_data(data_id, jobs=["pageimg2tablebox_base64"])
         return data["pageimg2tablebox_base64"]
@@ -209,7 +224,9 @@ class TotoClient:
     def extract_table(self, data_id):
         data = self.get_data(data_id, jobs=["hf_recognise_table_base64"])
         assert data["dataType"] == "image"
-        job_identifier = self.queue_job("hf_recognise_table_base64", data_id=data_id)
+        job_identifier = self.queue_job(
+            "hf_recognise_table_base64", data_id=data_id
+        )
         self.wait_for_jobs_to_complete([job_identifier])
 
         data = self.get_data(data_id, jobs=["hf_recognise_table_base64"])
@@ -287,10 +304,12 @@ class TotoClient:
         data_text = data["crop_image_and_ocr"][0]
         return data_text
 
-    def semantic_search(self, search_term):
+    def semantic_search(
+        self, search_term: str, num_results: Optional[Union[str, int]] = None
+    ):
         query = """
-            query SemanticSearch($searchTerm: String!) {
-                semanticSearch(search: $searchTerm) {
+            query SemanticSearch($searchTerm: String!, $numResults: Int) {
+                semanticSearch(search: $searchTerm, numResults: $numResults) {
                     similarityScore
                     data {
                       id
@@ -302,7 +321,10 @@ class TotoClient:
                 }
             }
             """
-        data = {"query": query, "variables": {"searchTerm": search_term}}
+        data = {
+            "query": query,
+            "variables": {"searchTerm": search_term, "numResults": num_results},
+        }
         headers = {
             "Authorization": f"Bearer {self.r2_token}",
             "Content-type": "application/json",
