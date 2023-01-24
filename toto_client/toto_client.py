@@ -90,11 +90,11 @@ class TotoClient:
     def queue_job(
         self,
         job_name: str,
-        data_id: str,
+        data_id: Union[str, List[str]],
         extra_arguments: Optional[Dict] = None,
         force=False,
     ):
-        values = {"jobName": job_name, "dataId": data_id}
+        values = {"jobName": job_name, "dataId": json.dumps(data_id)}
         if extra_arguments is not None:
             values["extraArguments"] = json.dumps(extra_arguments)
         if force:
