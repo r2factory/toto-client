@@ -231,7 +231,7 @@ class TotoClient:
                     dataType
                     text
                 }
-              }
+              }   
             }
         """ % (parent_data_id, polygon)
         data = {"query": query, "variables": None}
