@@ -38,6 +38,12 @@ class TotoClient:
         if request_session is None:
             self.request_session = requests.Session()
 
+        self.headers = {
+            'Authorization': f"Bearer {self.r2_token}",
+            'Content-type': 'application/json',
+            'Accept': 'application/json'
+        }
+
     def upload_file(self, file_path: str):
         file_name = os.path.basename(file_path)
         file_uuid = self.generate_file_uuid(file_path)
@@ -55,7 +61,7 @@ class TotoClient:
 
         values = {'fileContentBase64': file_content_base64, 'fileName': file_name, 'uuid': file_uuid}
 
-        r = self.request_session.post(f"{self.host}/upload_file", json=values)
+        r = self.request_session.post(f"{self.host}/upload_file", json=values, headers=self.headers)
         if r.status_code != 200:
             raise ValueError(f"Failed uploading {r.status_code} {r.text}")
 
@@ -75,7 +81,7 @@ class TotoClient:
         if force:
             values["force"] = "True"
 
-        r = self.request_session.get(f"{self.host}/queue_job", params=values)
+        r = self.request_session.get(f"{self.host}/queue_job", params=values, headers=self.headers)
         if r.status_code != 200:
             raise ValueError(f"Failed queuing job {r.status_code} {r.text}")
 
@@ -85,7 +91,7 @@ class TotoClient:
         values = None
         if job_ids is not None:
             values = {"jobIds": job_ids}
-        r = self.request_session.get(f"{self.host}/jobs", json=values)
+        r = self.request_session.get(f"{self.host}/jobs", json=values, headers=self.headers)
         if r.status_code != 200:
             raise ValueError(f"Failed querying for jobs {r.status_code} {r.text}")
 
@@ -155,12 +161,8 @@ class TotoClient:
                     }
                 """ % (data_id, query)
         data = {"query": query, "variables": None}
-        headers = {
-            'Authorization': f"Bearer {self.r2_token}",
-            'Content-type': 'application/json',
-            'Accept': 'application/json'
-        }
-        r = self.request_session.post(f"{self.host}/graphql", headers=headers, json=data)
+
+        r = self.request_session.post(f"{self.host}/graphql", headers=self.headers, json=data)
         if not (200 <= r.status_code < 300):
             raise ConnectionError(r.text)
         return r.json()['data']['data']
@@ -210,12 +212,7 @@ class TotoClient:
            """
 
         data = {"query": query, "variables": {"searchTerm": search_term}}
-        headers = {
-            'Authorization': f"Bearer {self.r2_token}",
-            'Content-type': 'application/json',
-            'Accept': 'application/json'
-        }
-        r = self.request_session.post(f"{self.host}/graphql", headers=headers, json=data)
+        r = self.request_session.post(f"{self.host}/graphql", headers=self.headers, json=data)
         if not (200 <= r.status_code < 300):
             raise ConnectionError(r.text)
 
@@ -235,12 +232,7 @@ class TotoClient:
             }
         """ % (parent_data_id, polygon)
         data = {"query": query, "variables": None}
-        headers = {
-            'Authorization': f"Bearer {self.r2_token}",
-            'Content-type': 'application/json',
-            'Accept': 'application/json'
-        }
-        r = self.request_session.post(f"{self.host}/graphql", headers=headers, json=data)
+        r = self.request_session.post(f"{self.host}/graphql", headers=self.headers, json=data)
         if not (200 <= r.status_code < 300):
             raise ConnectionError(r.text)
 
