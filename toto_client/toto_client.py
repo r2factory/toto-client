@@ -199,8 +199,24 @@ class TotoClient:
                   id
                   fileName
                   dataType
-                  pageNumber
-                  pageIndexes
+                  regs: datas(tagName: "regs") {
+                    id
+                        dataType
+                        pageNumber
+                        text
+                    }
+                    effects: datas(tagName: "effects") {
+                        id
+                        dataType
+                        pageNumber
+                        text
+                    }
+                    sub_evidence: datas(tagName: "sub_evidence") {
+                        id
+                        dataType
+                        pageNumber
+                        text
+                    }
                 }
                 score
                 valueCount
