@@ -199,6 +199,8 @@ class TotoClient:
                   id
                   fileName
                   dataType
+                  pageNumber
+                  pageIndexes
                   regs: datas(tagName: "regs") {
                     id
                         dataType
