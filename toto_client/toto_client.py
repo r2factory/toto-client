@@ -329,7 +329,7 @@ class TotoClient:
         return data_text
 
     def semantic_search(
-        self, search_term: str, num_results: Optional[Union[str, int]] = None
+        self, search_term: str, num_results: int = None
     ):
         query = """
             query SemanticSearch($searchTerm: String!, $numResults: Int) {
@@ -360,9 +360,9 @@ class TotoClient:
         )
         if not (200 <= r.status_code < 300):
             raise ConnectionError(r.text)
+        
+        return r.json()["data"]["semanticSearch"]
 
-        search_results = r.json()["data"]["semanticSearch"]
-        return search_results
 
     def get_results(self, label_name):
         query = """
