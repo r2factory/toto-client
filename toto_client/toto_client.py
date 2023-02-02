@@ -74,7 +74,14 @@ class TotoClient:
             "uuid": file_uuid,
         }
 
-        r = self.request_session.post(f"{self.host}/upload_file", json=values)
+        headers = {
+            "Authorization": f"Bearer {self.r2_token}",
+            "Content-type": "application/json",
+            "Accept": "application/json",
+        }
+        r = self.request_session.post(
+            f"{self.host}/upload_file", json=values, headers=headers
+        )
         if r.status_code != 200:
             raise ValueError(f"Failed uploading {r.status_code} {r.text}")
 
@@ -100,7 +107,14 @@ class TotoClient:
         if force:
             values["force"] = "True"
 
-        r = self.request_session.get(f"{self.host}/queue_job", params=values)
+        headers = {
+            "Authorization": f"Bearer {self.r2_token}",
+            "Content-type": "application/json",
+            "Accept": "application/json",
+        }
+        r = self.request_session.get(
+            f"{self.host}/queue_job", params=values, headers=headers
+        )
         if r.status_code != 200:
             raise ValueError(f"Failed queuing job {r.status_code} {r.text}")
 
@@ -110,7 +124,15 @@ class TotoClient:
         values = None
         if job_ids is not None:
             values = {"jobIds": job_ids}
-        r = self.request_session.get(f"{self.host}/jobs", json=values)
+
+        headers = {
+            "Authorization": f"Bearer {self.r2_token}",
+            "Content-type": "application/json",
+            "Accept": "application/json",
+        }
+        r = self.request_session.get(
+            f"{self.host}/jobs", json=values, headers=headers
+        )
         if r.status_code != 200:
             raise ValueError(
                 f"Failed querying for jobs {r.status_code} {r.text}"
@@ -327,6 +349,7 @@ class TotoClient:
             "query": query,
             "variables": {"searchTerm": search_term, "numResults": num_results},
         }
+
         headers = {
             "Authorization": f"Bearer {self.r2_token}",
             "Content-type": "application/json",
@@ -340,3 +363,42 @@ class TotoClient:
 
         search_results = r.json()["data"]["semanticSearch"]
         return search_results
+
+    def get_results(self, label_name):
+        query = """
+                query {
+                getFinalTable(labelName: "%s") {
+                    parentDataId
+                    parentDataFileName
+                    tagGroup
+                    columns {
+                    tagName
+                    dataText
+                    }
+                }
+                }
+            """ % (
+            label_name,
+        )
+
+        data = {"query": query, "variables": None}
+        headers = {
+            "Authorization": f"Bearer {self.r2_token}",
+            "Content-type": "application/json",
+            "Accept": "application/json",
+        }
+        r = self.request_session.post(
+            f"{self.host}/graphql", headers=headers, json=data
+        )
+        if not (200 <= r.status_code < 300):
+            raise ConnectionError(r.text)
+
+        table = r.json()["data"]["getFinalTable"]
+
+        return_table = {}
+        for row in table:
+            columns = row["columns"]
+            return_table[row["parentDataFileName"]] = {
+                column["tagName"]: column["dataText"] for column in columns
+            }
+        return return_table
