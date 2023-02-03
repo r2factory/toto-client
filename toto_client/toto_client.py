@@ -328,9 +328,7 @@ class TotoClient:
         data_text = data["crop_image_and_ocr"][0]
         return data_text
 
-    def semantic_search(
-        self, search_term: str, num_results: int = None
-    ):
+    def semantic_search(self, search_term: str, num_results: int = None):
         query = """
             query SemanticSearch($searchTerm: String!, $numResults: Int) {
                 semanticSearch(search: $searchTerm, numResults: $numResults) {
@@ -360,9 +358,8 @@ class TotoClient:
         )
         if not (200 <= r.status_code < 300):
             raise ConnectionError(r.text)
-        
-        return r.json()["data"]["semanticSearch"]
 
+        return r.json()["data"]["semanticSearch"]
 
     def get_results(self, label_name):
         query = """
