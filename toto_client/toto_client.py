@@ -295,40 +295,22 @@ class TotoClient:
 
         search_results = r.json()["data"]["searchInTexts"]
         return search_results
-        query = """
-            mutation {
-                cropImageAndOcr(parentDataId: "%s", polygon: %s) {
-                  id
-                  dataType
-                  crop_image_and_ocr: datas(jobName: "crop_image_and_ocr") {
-                    id
-                    dataType
-                    text
-                }
-              }
-            }
-        """ % (
-            parent_data_id,
-            polygon,
-        )
-        data = {"query": query, "variables": None}
-        headers = {
-            "Authorization": f"Bearer {self.r2_token}",
-            "Content-type": "application/json",
-            "Accept": "application/json",
-        }
-        r = self.request_session.post(
-            f"{self.host}/graphql", headers=headers, json=data
-        )
-        if not (200 <= r.status_code < 300):
-            raise ConnectionError(r.text)
 
-        data = r.json()["data"]["cropImageAndOcr"]
-
-        data_text = data["crop_image_and_ocr"][0]
-        return data_text
-
-    def semantic_search(self, search_term: str, num_results: int = None):
+    def semantic_search(self, search_term: str, tags: Union[str, List[str]] = None, num_results: int = None):
+        query = ""
+        if tags is not None:
+            if isinstance(tags, str):
+                tags = [tags]
+            for tag in tags:
+                query += """
+                    %s: datas(tagName: "%s") {
+                        id
+                        dataType
+                        pageNumber
+                        text
+                    }
+                """ % (tag.replace(" ", "_"),tag)
+        
         query = """
             query SemanticSearch($searchTerm: String!, $numResults: Int) {
                 semanticSearch(search: $searchTerm, numResults: $numResults) {
@@ -339,10 +321,12 @@ class TotoClient:
                       dataType
                       pageNumber
                       pageIndexes
+                      %s
                     }
                 }
             }
-            """
+            """ % (query)
+            
         data = {
             "query": query,
             "variables": {"searchTerm": search_term, "numResults": num_results},
@@ -360,7 +344,7 @@ class TotoClient:
             raise ConnectionError(r.text)
 
         return r.json()["data"]["semanticSearch"]
-
+    
     def get_results(self, label_name):
         query = """
                 query {
