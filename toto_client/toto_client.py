@@ -178,7 +178,7 @@ class TotoClient:
                       pageIndexes
                       polygonRelativeToParent
                       tableCsv
-                      text
+                      dataValue
                     }
                 """ % (
                     tag.replace(" ", "_"),
@@ -197,7 +197,7 @@ class TotoClient:
                       pageIndexes
                       polygonRelativeToParent
                       tableCsv
-                      text
+                      dataValue
                     }
                 """ % (
                     job,
@@ -212,7 +212,7 @@ class TotoClient:
                         pageNumber
                         pageIndexes
                         polygonRelativeToParent
-                        text
+                        dataValue
                         %s
                       }
                     }
@@ -303,7 +303,7 @@ class TotoClient:
                   crop_image_and_ocr: datas(jobName: "crop_image_and_ocr") {
                     id
                     dataType
-                    text
+                    dataValue
                 }
               }
             }
@@ -337,7 +337,7 @@ class TotoClient:
                 tagGroup
                 columns {
                   tagName
-                  dataText
+                  dataValue
                 }
               }
             }
@@ -363,6 +363,6 @@ class TotoClient:
         for row in table:
             columns = row["columns"]
             return_table[row["parentDataFileName"]] = {
-                column["tagName"]: column["dataText"] for column in columns
+                column["tagName"]: column["dataValue"] for column in columns
             }
         return return_table
