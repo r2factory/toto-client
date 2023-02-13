@@ -361,18 +361,18 @@ class TotoClient:
     
     def get_results(self, label_name):
         query = """
-                query {
-                getFinalTable(labelName: "%s") {
-                    parentDataId
-                    parentDataFileName
-                    tagGroup
-                    columns {
-                    tagName
-                    dataText
-                    }
+            query {
+              getFinalTable(labelName: "%s") {
+                parentDataId
+                parentDataFileName
+                tagGroup
+                columns {
+                  tagName
+                  dataText
                 }
-                }
-            """ % (
+              }
+            }
+        """ % (
             label_name,
         )
 
