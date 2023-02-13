@@ -263,23 +263,37 @@ class TotoClient:
         df = pd.read_csv(csvStringIO, sep=",", header=None)
         return df
 
-    def search_term(self, search_term):
-        query = """
-            query Search($searchTerm: String!) {
-              searchInTexts(searchTerm: $searchTerm) {
-                data {
-                  id
-                  fileName
-                  dataType
-                  pageNumber
-                  pageIndexes
-                }
-                score
-                valueCount
-                searchPageNumber
-              }
-            }
-           """
+    def search_term(self, search_term, tags = None):
+        query = ""
+        if tags is not None:
+            if isinstance(tags, str):
+                tags = [tags]
+            for tag in tags:
+                query += """
+                    %s: datas(tagName: "%s") {
+                      id
+                        dataType
+                        pageNumber
+                        text
+                    }
+                """ % (tag.replace(" ", "_"),tag)
+        
+        query = """query Search($searchTerm: String!) {
+                    searchInTexts(searchTerm: $searchTerm) {
+                        data {
+                            id
+                            fileName
+                            dataType
+                            pageNumber
+                            pageIndexes
+                            %s
+                        }
+                        score
+                        valueCount
+                        searchPageNumber
+                      }
+                    }
+                """ % (query)
 
         data = {"query": query, "variables": {"searchTerm": search_term}}
         headers = {
