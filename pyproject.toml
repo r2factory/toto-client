@@ -8,6 +8,7 @@ authors = ["R2 Factory <contact@r2-factory.com>"]
 python = "3.8.13"
 requests = "^2.28.1"
 google-auth = "^2.15.0"
+pandas = "^1.5.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
