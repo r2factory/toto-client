@@ -2,7 +2,7 @@ import json
 import os
 import time
 from io import StringIO
-from typing import Optional, Dict, List
+from typing import Optional, Union, Dict, List
 import base64
 import requests
 import pandas as pd
@@ -97,11 +97,11 @@ class TotoClient:
     def queue_job(
         self,
         job_name: str,
-        data_id: str,
+        data_id: Union[str, List[str]],
         extra_arguments: Optional[Dict] = None,
         force=False,
     ):
-        values = {"jobName": job_name, "dataId": data_id}
+        values = {"jobName": job_name, "dataId": json.dumps(data_id)}
         if extra_arguments is not None:
             values["extraArguments"] = json.dumps(extra_arguments)
         if force:
@@ -263,23 +263,37 @@ class TotoClient:
         df = pd.read_csv(csvStringIO, sep=",", header=None)
         return df
 
-    def search_term(self, search_term):
-        query = """
-            query Search($searchTerm: String!) {
-              searchInTexts(searchTerm: $searchTerm) {
-                data {
-                  id
-                  fileName
-                  dataType
-                  pageNumber
-                  pageIndexes
-                }
-                score
-                valueCount
-                searchPageNumber
-              }
-            }
-           """
+    def search_term(self, search_term, tags = None):
+        query = ""
+        if tags is not None:
+            if isinstance(tags, str):
+                tags = [tags]
+            for tag in tags:
+                query += """
+                    %s: datas(tagName: "%s") {
+                      id
+                        dataType
+                        pageNumber
+                        text
+                    }
+                """ % (tag.replace(" ", "_"),tag)
+        
+        query = """query Search($searchTerm: String!) {
+                    searchInTexts(searchTerm: $searchTerm) {
+                        data {
+                            id
+                            fileName
+                            dataType
+                            pageNumber
+                            pageIndexes
+                            %s
+                        }
+                        score
+                        valueCount
+                        searchPageNumber
+                      }
+                    }
+                """ % (query)
 
         data = {"query": query, "variables": {"searchTerm": search_term}}
         headers = {
@@ -295,23 +309,44 @@ class TotoClient:
 
         search_results = r.json()["data"]["searchInTexts"]
         return search_results
+
+    def semantic_search(self, search_term: str, tags: Union[str, List[str]] = None, num_results: int = None):
+        query = ""
+        if tags is not None:
+            if isinstance(tags, str):
+                tags = [tags]
+            for tag in tags:
+                query += """
+                    %s: datas(tagName: "%s") {
+                        id
+                        dataType
+                        pageNumber
+                        text
+                    }
+                """ % (tag.replace(" ", "_"),tag)
+        
         query = """
-            mutation {
-                cropImageAndOcr(parentDataId: "%s", polygon: %s) {
-                  id
-                  dataType
-                  crop_image_and_ocr: datas(jobName: "crop_image_and_ocr") {
-                    id
-                    dataType
-                    dataValue
+
+            query SemanticSearch($searchTerm: String!, $numResults: Int) {
+                semanticSearch(search: $searchTerm, numResults: $numResults) {
+                    similarityScore
+                    data {
+                      id
+                      fileName
+                      dataType
+                      pageNumber
+                      pageIndexes
+                      %s
+                    }
                 }
-              }
             }
-        """ % (
-            parent_data_id,
-            polygon,
-        )
-        data = {"query": query, "variables": None}
+            """ % (query)
+            
+        data = {
+            "query": query,
+            "variables": {"searchTerm": search_term, "numResults": num_results},
+        }
+
         headers = {
             "Authorization": f"Bearer {self.r2_token}",
             "Content-type": "application/json",
@@ -323,11 +358,8 @@ class TotoClient:
         if not (200 <= r.status_code < 300):
             raise ConnectionError(r.text)
 
-        data = r.json()["data"]["cropImageAndOcr"]
-
-        data_text = data["crop_image_and_ocr"][0]
-        return data_text
-
+        return r.json()["data"]["semanticSearch"]
+    
     def get_results(self, label_name):
         query = """
             query {
