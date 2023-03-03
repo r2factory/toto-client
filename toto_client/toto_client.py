@@ -154,6 +154,8 @@ class TotoClient:
                 print(".", end="", flush=True)
             jobs = self.jobs(job_ids)
             for job_ids_index in range(len(job_ids)):
+                if job_ids_index >= len(job_ids):
+                    break
                 job_id = job_ids[job_ids_index]
                 if jobs[job_id]["status"] not in ("Running", "Queued"):
                     job_ids.pop(job_ids_index)
@@ -291,6 +293,7 @@ class TotoClient:
                         score
                         valueCount
                         searchPageNumber
+                        snippets
                       }
                     }
                 """ % (query)
