@@ -180,7 +180,7 @@ class TotoClient:
                       pageIndexes
                       polygonRelativeToParent
                       tableCsv
-                      text
+                      dataValue
                     }
                 """ % (
                     tag.replace(" ", "_"),
@@ -199,7 +199,7 @@ class TotoClient:
                       pageIndexes
                       polygonRelativeToParent
                       tableCsv
-                      text
+                      dataValue
                     }
                 """ % (
                     job,
@@ -214,7 +214,7 @@ class TotoClient:
                         pageNumber
                         pageIndexes
                         polygonRelativeToParent
-                        text
+                        dataValue
                         %s
                       }
                     }
@@ -329,6 +329,7 @@ class TotoClient:
                 """ % (tag.replace(" ", "_"),tag)
         
         query = """
+
             query SemanticSearch($searchTerm: String!, $numResults: Int) {
                 semanticSearch(search: $searchTerm, numResults: $numResults) {
                     similarityScore
@@ -371,7 +372,7 @@ class TotoClient:
                 tagGroup
                 columns {
                   tagName
-                  dataText
+                  dataValue
                 }
               }
             }
@@ -397,6 +398,6 @@ class TotoClient:
         for row in table:
             columns = row["columns"]
             return_table[row["parentDataFileName"]] = {
-                column["tagName"]: column["dataText"] for column in columns
+                column["tagName"]: column["dataValue"] for column in columns
             }
         return return_table
